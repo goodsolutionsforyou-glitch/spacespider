@@ -1,0 +1,546 @@
+<script>
+//VERY IMPORTANT - PLEASE READ BEFORE MODIFYING THE CODE OR ADDING NEW FEATURES:
+// COMMENTS FOR AI AND FOR USER - DO NOT MODIFY THIS COMMENTS BELOW. ALWAYS ASK ME IF YOU WANT TO CHANGE ANYTHING IN THE GAME OR ADD NEW FEATURES AS YOU BROKE THE GAME BEFORE ;D
+// never remove this comment, add this all conent in script to all new versionsits important for the AI to understand the code and not break the game. If you want to change anything in the game or add new features, please ask me first. I know the code looks messy but it works and I dont want to break anything as this is the final version of the game. Thanks for understanding ;D
+// do not remove controlers for pads and addthem in the  seeting legend and in the game instructions. I know the code looks messy but it works and I dont want to break anything as this is the final version of the game. Thanks for understanding ;D
+// CRITICAL INSTRUCTION — DO NOT OVERWRITE:
+// I have specific code blocks marked with START/END DO NOT CHANGE.
+// NEVER modify, "optimize," or rewrite the code inside those markers.
+// NEVER remove the markers themselves.
+// Even if you think the code is "messy" or can be "improved," LEAVE IT AS IS.
+// Only change these sections if I explicitly say: "Change the graphics logic now."
+// Keep the Procedural Graphics exactly as they are.
+</script>
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spider Predator - Ultimate Master Edition</title>
+    <style>
+        :root { --n: #00ff88; --p2col: #ff00ff; --blue: #00d4ff; }
+        body { margin: 0; background: #000; overflow: hidden; color: white; font-family: 'Segoe UI', sans-serif; touch-action: none; user-select: none; }
+        
+        /* ---------------------------------------------------
+           ZORGANIZOWANY PANEL MENU I UI
+           --------------------------------------------------- */
+        #ui-layer { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; }
+        .box { background: rgba(20,20,20,0.98); padding: 25px; border-radius: 20px; border: 2px solid var(--n); text-align: center; width: 90%; max-width: 550px; max-height: 95vh; overflow-y: auto; box-shadow: 0 0 30px rgba(0,255,136,0.3); }
+        .panel-group { border: 1px solid #333; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.5); }
+        .panel-group legend { color: var(--blue); font-size: 14px; font-weight: bold; padding: 0 10px; border: none; }
+        
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 5px 0 15px 0; align-items: center; text-align: left; }
+        h1 { color: var(--n); font-size: 26px; letter-spacing: 4px; margin: 0 0 15px; text-shadow: 0 0 10px var(--n); }
+        h2 { color: var(--blue); font-size: 16px; margin: 15px 0 5px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        select, button { padding: 10px; font-size: 14px; border-radius: 8px; border: 1px solid #444; background: #080808; color: white; width: 100%; cursor: pointer; }
+        button { background: var(--n); color: black; font-weight: 900; border: none; margin-top: 10px; transition: 0.2s; }
+        button:hover { background: #fff; transform: scale(1.02); }
+        .sec { background: #333; color: #eee; }
+        
+        .hud { height: 60px; background: #0a0a0a; display: none; justify-content: space-around; align-items: center; border-bottom: 2px solid var(--n); font-weight: bold; font-size: 18px; }
+        #stage { display: flex; width: 100vw; height: calc(100vh - 60px); position: relative; }
+        .vp { flex: 1; position: relative; border-right: 1px solid #333; display: none; }
+        canvas { width: 100%; height: 100%; display: block; }
+        #esc-btn { position: fixed; top: 10px; right: 10px; width: 60px; height: 40px; background: #333; color: white; border: 1px solid #666; font-size: 10px; display: none; z-index: 6000; align-items: center; justify-content: center; border-radius: 5px; cursor: pointer; }
+
+        /* ---------------------------------------------------
+           MOBILE CONTROLS - MULTITOUCH DLA 2 GRACZY
+           --------------------------------------------------- */
+        #mobile-ui { position: absolute; inset: 0; pointer-events: none; z-index: 5500; display: none; }
+        
+        /* P1 Controls */
+        .joy1-base { position: absolute; bottom: 30px; left: 20px; width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 2px solid var(--n); border-radius: 50%; pointer-events: auto; }
+        .joy-knob { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; background: var(--n); border-radius: 50%; transform: translate(-50%, -50%); }
+        #fire-btn1 { position: absolute; bottom: 40px; left: 130px; width: 70px; height: 70px; background: rgba(255,0,0,0.4); border: 3px solid white; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        
+        /* P2 Controls */
+        .joy2-base { position: absolute; bottom: 30px; right: 20px; width: 90px; height: 90px; background: rgba(255,255,255,0.1); border: 2px solid var(--p2col); border-radius: 50%; pointer-events: auto; display: none; }
+        .joy-knob2 { background: var(--p2col); }
+        #fire-btn2 { position: absolute; bottom: 40px; right: 130px; width: 70px; height: 70px; background: rgba(255,0,255,0.4); border: 3px solid white; border-radius: 50%; pointer-events: auto; display: none; align-items: center; justify-content: center; font-weight: bold; color: white; }
+    </style>
+</head>
+<body>
+
+<div id="esc-btn" onclick="backToMenu()">ESC/QUIT</div>
+
+<div id="ui-layer">
+    
+    <div id="m-main" class="box">
+        <h1>SPIDER PREDATOR</h1>
+        
+        <fieldset class="panel-group">
+            <legend>PARAMETRY STARTOWE</legend>
+            <div class="row">
+                <label>TRYB GRY:</label>
+                <select id="s-mode">
+                    <option value="1">SOLO PLAYER</option>
+                    <option value="shared">2 GRACZY (SHARED)</option>
+                    <option value="split">2 GRACZY (SPLIT)</option>
+                </select>
+                <label>GRAFIKA:</label>
+                <select id="s-gfx">
+                    <option value="proc">GFX (GENEROWANE)</option>
+                    <option value="png">PNG (OBRAZKI)</option>
+                </select>
+            </div>
+        </fieldset>
+
+        <button id="btn-init">URUCHOM SYSTEM</button>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="sec" style="flex:1" onclick="showSub('m-set')">USTAWIENIA</button>
+            <button class="sec" style="flex:1" onclick="showSub('m-legend')">LEGENDA</button>
+        </div>
+    </div>
+
+    <div id="m-set" class="box" style="display:none">
+        <h1>USTAWIENIA</h1>
+        
+        <fieldset class="panel-group">
+            <legend>STEROWANIE I GRACZ</legend>
+            <div class="row">
+                <label>STEROWANIE:</label>
+                <select id="s-touch">
+                    <option value="buttons">JOYSTICK + FIRE</option>
+                    <option value="follow">PODĄŻAJ ZA PALCEM</option>
+                </select>
+                <label>KOLOR P1:</label>
+                <select id="s-c1"><option value="#00ff88">Neon Green</option><option value="#00d4ff">Cyber Blue</option></select>
+            </div>
+        </fieldset>
+
+        <fieldset class="panel-group">
+            <legend>AUDIO & SOUND</legend>
+            <div class="row">
+                <label>DŹWIĘK FX:</label>
+                <select id="s-sfx">
+                    <option value="off">WYŁĄCZONY</option>
+                    <option value="retro">RETRO BEEP</option>
+                    <option value="laser">LASER BEAM</option>
+                </select>
+                <label>MUZYKA:</label>
+                <select id="s-music">
+                    <option value="off">OFF</option>
+                    <option value="synth">SYNTH (CODE)</option>
+                    <option value="mp3">MP3 (FOLDER)</option>
+                </select>
+            </div>
+            <div class="row" style="grid-template-columns: 1fr;">
+                <label style="margin-bottom:-10px;">WYBÓR UTWORU:</label>
+                <select id="s-music-type">
+                    <option value="battle">BATTLE</option>
+                    <option value="mozard">MOZARD</option>
+                    <option value="victory">VICTORY</option>
+                    <option value="thewall">THE WALL</option>
+                    <option value="starwars">STAR WARS</option> 
+                </select>
+            </div>
+        </fieldset>
+        
+        <button onclick="saveSettings()">ZAPISZ I POWRÓT</button>
+    </div>
+
+    <div id="m-legend" class="box" style="display:none">
+        <h1>LEGENDA & INFO</h1>
+        <div class="panel-group" style="text-align: left;">
+            <div class="leg-row" style="margin-bottom:8px;"><span><b>FLY/STALKER:</b> Wrogowie (Latające i pełzające).</span></div>
+            <div class="leg-row" style="margin-bottom:8px;"><span><b>GAMEPADS:</b> Wspiera pady USB/Bluetooth. Button 0 strzela.</span></div>
+            <div class="leg-row" style="margin-bottom:8px;"><span><b>MOBILE:</b> Joystick + FIRE. W pełni wspiera 2 graczy!</span></div>
+        </div>
+        <button onclick="showSub('m-main')">POWRÓT</button>
+    </div>
+</div>
+
+<div id="hud" class="hud">
+    <div id="st1">P1: ❤️❤️❤️❤️❤️ | 0</div>
+    <div id="st2" style="display:none">P2: ❤️❤️❤️❤️❤️ | 0</div>
+</div>
+
+<div id="stage">
+    <div id="v1" class="vp" style="display:block"><canvas id="c1"></canvas></div>
+    <div id="v2" class="vp"><canvas id="c2"></canvas></div>
+    
+    <div id="mobile-ui">
+        <div class="joy1-base" id="joy-base">
+            <div class="joy-knob" id="joy-knob"></div>
+        </div>
+        <div id="fire-btn1">FIRE</div>
+        
+        <div class="joy2-base" id="joy-base2">
+            <div class="joy-knob joy-knob2" id="joy-knob2"></div>
+        </div>
+        <div id="fire-btn2">FIRE 2</div>
+    </div>
+</div>
+
+<script>
+// COMMENTS FOR AI AND FOR USER - DO NOT MODIFY.
+// FINAL VERSION - STABILIZED AUDIO & GRAPHICS.
+    const assets = {}, keys = {}, assetMap = { 
+        spider:'spider.png', fly:'orangefly.png', heart:'heart.png', 
+        stalker:'enemyspider.png', poo:'poo.png', bluefire:'bluefire.png' 
+    };
+    
+    let run = false, mode = "1", gfxStyle = "proc", touchStyle = "follow", lastT = 0, spawnTimers = [];
+    let sfxStyle = "retro", musicMode = "off", musicType = "battle"; 
+
+    let audioCtx = null;
+    let musicInterval = null;
+    let currentMp3 = null;
+
+    // Joystick State dla dwóch graczy
+    let joyInput = { x: 0, y: 0, active: false };
+    let joyInput2 = { x: 0, y: 0, active: false };
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSong() {
+        if (musicMode === "off") return;
+        if (musicInterval) clearInterval(musicInterval);
+        if (currentMp3) { currentMp3.pause(); currentMp3 = null; }
+
+        if (musicMode === "mp3") {
+            currentMp3 = new Audio(`mp3songs/${musicType}.mp3`);
+            currentMp3.loop = true;
+            currentMp3.play().catch(e => console.log("MP3 Folder Missing or Error"));
+            return;
+        }
+
+        let step = 0, tempo = 200, melody = [];
+        const C2=65.41, D2=73.42, E2=82.41, F2=87.31, G2=97.99, A2=110.00, C3=130.81, D3=146.83, E3=164.81, G3=196.00, C4=261.63;
+
+        if(musicType === "battle") {
+            tempo = 150; melody = [A2, A2, 0, A2, C3, 0, G2, 0, A2, A2, 0, E2];
+        } else if(musicType === "mozard") {
+            tempo = 180; melody = [E3, D3, C3, D3, E3, E3, E3, 0, D3, D3, D3, 0, E3, G3, G3, 0];
+        } else if(musicType === "victory") {
+            tempo = 200; melody = [C3, 0, G2, 0, C3, 0, E3, G3, 0, C3, 0, 0];
+        } else if(musicType === "thewall") {
+            tempo = 210; melody = [D2,D2,D2,D2, D2,D2,D2,D3, F2,G2,D2,0]; 
+        } else if(musicType === "starwars") {
+            tempo = 150; 
+            const G2=98.00, C3=130.81, D3=146.83, E3=164.81, F3=174.61, G3=196.00, A3=220.00, B3=246.94, C4=261.63;
+            const intro = [G2, G2, G2];
+            const theme = [C3, 0, G3, 0, F3, E3, D3, C4, 0, G3, 0, F3, E3, D3, C4, 0, G3, 0, F3, E3, F3, D3, 0, 0];
+            melody = [...intro, ...theme];
+        }
+
+        musicInterval = setInterval(() => {
+            if(!run) return;
+            const freq = melody[step % melody.length];
+            if (freq > 0) {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = (musicType === "starwars") ? "sawtooth" : "square";
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.4);
+            }
+            step++;
+        }, tempo);
+    }
+
+    function playShootSound(style) {
+        if (!audioCtx || style === 'off') return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        if (style === 'retro') {
+            osc.type = 'square'; osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+        } else if (style === 'laser') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(110, now + 0.15);
+        }
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(); osc.stop(now + 0.1);
+    }
+
+    const world = () => ({ en:[], pr:[], time:0 });
+    let p1 = { id:1, x:0, y:0, hp:5, sc:0, col:'#00ff88', w:world(), ls:0, pwr:0, tx:null, ty:null, fire:false };
+    let p2 = { id:2, x:0, y:0, hp:5, sc:0, col:'#ff00ff', w:null, ls:0, pwr:0, tx:null, ty:null, fire:false };
+
+// START DO NOT CHANGE: COMPUTER GRAPHICS.
+    function drawObj(ctx, t, x, y, s, time, col, hasPwr = false, p = null) {
+        ctx.save(); ctx.translate(x, y);
+        if(t === 'spider' && p && p.hp <= 0) {
+            ctx.globalAlpha = 0.4; col = "#888888"; 
+            ctx.fillStyle = "#fff"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
+            ctx.fillText("ZOMBI", 0, -s - 5);
+        }
+        if(t === 'spider' && hasPwr && p) {
+            ctx.beginPath(); ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 3;
+            ctx.arc(0,0, s + Math.sin(time*0.2)*5, 0, 6.3); ctx.stroke();
+            let sec = Math.ceil(p.pwr / 60);
+            ctx.fillStyle = "#00d4ff"; ctx.font = "bold 16px Arial"; ctx.textAlign = "center";
+            ctx.fillText(sec + "s", 0, -s - 20);
+        }
+        if(gfxStyle === 'png' && assets[t] && !assets[t].err) {
+            ctx.drawImage(assets[t], -s/2, -s/2, s, s);
+        } else {
+            ctx.shadowBlur = 10; ctx.shadowColor = col;
+            if(t === 'spider') {
+                ctx.strokeStyle = col; ctx.lineWidth = 3;
+                for(let i=0; i<8; i++) {
+                    ctx.beginPath(); let a = (i * Math.PI/4) + Math.sin(time*0.1 + i)*0.2;
+                    ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*s, Math.sin(a)*s); ctx.stroke();
+                }
+                ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(0,0,s/2,0,6.3); ctx.fill(); ctx.stroke();
+            } else if(t === 'fly') {
+                ctx.fillStyle = "#ffaa00"; let w = Math.sin(time*0.5)*s;
+                ctx.beginPath(); ctx.ellipse(-s/2, 0, s/2, Math.abs(w), 0, 0, 6.3); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(s/2, 0, s/2, Math.abs(w), 0, 0, 6.3); ctx.fill();
+                ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0,0,s/3,0,6.3); ctx.fill();
+            } else if(t === 'heart') {
+                ctx.fillStyle = "#ff2222"; ctx.beginPath(); ctx.moveTo(0, s/4);
+                ctx.bezierCurveTo(s/2, -s/2, s, s/4, 0, s); ctx.bezierCurveTo(-s, s/4, -s/2, -s/2, 0, s/4); ctx.fill();
+            } else if(t === 'stalker') {
+                ctx.strokeStyle = "#ff0044"; ctx.lineWidth = 4; ctx.strokeRect(-s/2, -s/2, s, s);
+                ctx.rotate(time*0.05); ctx.strokeRect(-s/3, -s/3, s/1.5, s/1.5);
+            } else if(t === 'bluefire') {
+                ctx.fillStyle = "#00d4ff"; ctx.beginPath(); ctx.moveTo(0, s/2);
+                ctx.quadraticCurveTo(s/2, 0, 0, -s/2); ctx.quadraticCurveTo(-s/2, 0, 0, s/2); ctx.fill();
+            }
+        }
+        ctx.restore();
+    }
+// END DO NOT CHANGE
+
+    function start() {
+        if(run) return;
+        mode = document.getElementById('s-mode').value;
+        musicMode = document.getElementById('s-music').value;
+        musicType = document.getElementById('s-music-type').value;
+        touchStyle = document.getElementById('s-touch').value;
+        
+        p1 = { id:1, x:0, y:0, hp:5, sc:0, col:document.getElementById('s-c1').value, w:world(), ls:0, pwr:0, tx:null, ty:null, fire:false };
+        p2 = { id:2, x:0, y:0, hp:5, sc:0, col:'#ff00ff', w:null, ls:0, pwr:0, tx:null, ty:null, fire:false };
+        
+        document.getElementById('ui-layer').style.display = 'none';
+        document.getElementById('hud').style.display = 'flex';
+        document.getElementById('esc-btn').style.display = 'flex';
+        
+        const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if(isMobile && touchStyle === 'buttons') {
+            document.getElementById('mobile-ui').style.display = 'block';
+            
+            if(mode !== "1") {
+                document.getElementById('joy-base2').style.display = 'block';
+                document.getElementById('fire-btn2').style.display = 'flex';
+            } else {
+                document.getElementById('joy-base2').style.display = 'none';
+                document.getElementById('fire-btn2').style.display = 'none';
+            }
+        }
+
+        const h = window.innerHeight - 60, c1 = document.getElementById('c1');
+        if(mode === "split") {
+            document.getElementById('v2').style.display = 'block';
+            document.getElementById('st2').style.display = 'block';
+            p2.w = world(); c1.width = window.innerWidth / 2;
+            document.getElementById('c2').width = window.innerWidth / 2;
+            document.getElementById('c2').height = h;
+        } else {
+            c1.width = window.innerWidth;
+            if(mode === "shared") { p2.w = p1.w; document.getElementById('st2').style.display = 'block'; }
+        }
+        c1.height = h;
+        p1.x = c1.width * 0.75; p2.x = c1.width * 0.25; p1.y = p2.y = h - 100;
+        
+        run = true; spawn(p1); if(mode === "split") spawn(p2);
+        playSong(); requestAnimationFrame(loop);
+    }
+
+    // MULTITOUCH JOYSTICK LOGIC
+    const joyBase = document.getElementById('joy-base');
+    const joyKnob = document.getElementById('joy-knob');
+    const fireBtn = document.getElementById('fire-btn1');
+    
+    const joyBase2 = document.getElementById('joy-base2');
+    const joyKnob2 = document.getElementById('joy-knob2');
+    const fireBtn2 = document.getElementById('fire-btn2');
+
+    let tId1 = null, tId2 = null;
+
+    joyBase.addEventListener('touchstart', e => { e.preventDefault(); tId1 = e.changedTouches[0].identifier; joyInput.active = true; }, {passive: false});
+    joyBase2.addEventListener('touchstart', e => { e.preventDefault(); tId2 = e.changedTouches[0].identifier; joyInput2.active = true; }, {passive: false});
+
+    window.addEventListener('touchmove', e => {
+        for(let i=0; i<e.touches.length; i++) {
+            let touch = e.touches[i];
+            if(joyInput.active && touch.identifier === tId1) updateJoy(touch, joyBase, joyInput, joyKnob);
+            if(joyInput2.active && touch.identifier === tId2) updateJoy(touch, joyBase2, joyInput2, joyKnob2);
+        }
+    }, {passive: false});
+
+    function updateJoy(touch, baseEl, inputObj, knobEl) {
+        const rect = baseEl.getBoundingClientRect();
+        const centerX = rect.left + rect.width/2;
+        const centerY = rect.top + rect.height/2;
+        let dx = touch.clientX - centerX;
+        let dy = touch.clientY - centerY;
+        const dist = Math.min(50, Math.hypot(dx, dy));
+        const angle = Math.atan2(dy, dx);
+        
+        inputObj.x = (Math.cos(angle) * dist) / 50;
+        inputObj.y = (Math.sin(angle) * dist) / 50;
+        knobEl.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+    }
+
+    window.addEventListener('touchend', e => {
+        for(let i=0; i<e.changedTouches.length; i++) {
+            let touch = e.changedTouches[i];
+            if(touch.identifier === tId1) { joyInput.active = false; joyInput.x=0; joyInput.y=0; joyKnob.style.transform = `translate(-50%, -50%)`; tId1 = null; }
+            if(touch.identifier === tId2) { joyInput2.active = false; joyInput2.x=0; joyInput2.y=0; joyKnob2.style.transform = `translate(-50%, -50%)`; tId2 = null; }
+        }
+    });
+
+    fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); p1.fire = true; }, {passive: false});
+    fireBtn.addEventListener('touchend', (e) => { e.preventDefault(); p1.fire = false; }, {passive: false});
+    
+    fireBtn2.addEventListener('touchstart', (e) => { e.preventDefault(); p2.fire = true; }, {passive: false});
+    fireBtn2.addEventListener('touchend', (e) => { e.preventDefault(); p2.fire = false; }, {passive: false});
+
+    // Handle Resize for desktop and rotation
+    window.addEventListener('resize', () => { if(run) backToMenu(); });
+
+    function spawn(p) {
+        if(!run) return;
+        const types = ['fly','fly','stalker','bluefire','heart'];
+        let t = types[Math.floor(Math.random()*types.length)];
+        const lim = (mode === "split" ? window.innerWidth/2 : window.innerWidth);
+        p.w.en.push({ x: Math.random()*(lim-60)+30, y: -50, t: t, hp: t==='stalker'?3:1, spd: 2 + Math.random()*2, act: true, size: 30 });
+        spawnTimers.push(setTimeout(() => spawn(p), 1200));
+    }
+
+    function backToMenu() {
+        run = false; if(musicInterval) clearInterval(musicInterval);
+        if(currentMp3) { currentMp3.pause(); currentMp3 = null; }
+        spawnTimers.forEach(t => clearTimeout(t)); spawnTimers = [];
+        document.getElementById('ui-layer').style.display = 'flex';
+        document.getElementById('hud').style.display = 'none';
+        document.getElementById('esc-btn').style.display = 'none';
+        document.getElementById('v2').style.display = 'none';
+        document.getElementById('mobile-ui').style.display = 'none';
+        showSub('m-main');
+    }
+
+    function preStart() {
+        gfxStyle = document.getElementById('s-gfx').value;
+        touchStyle = document.getElementById('s-touch').value;
+        sfxStyle = document.getElementById('s-sfx').value;
+        if(gfxStyle === 'png') {
+            let loaded = 0, total = Object.keys(assetMap).length;
+            for(let k in assetMap) {
+                assets[k] = new Image(); assets[k].src = assetMap[k];
+                assets[k].onload = () => { if(++loaded >= total) start(); };
+                assets[k].onerror = () => { assets[k].err = true; if(++loaded >= total) start(); };
+            }
+        } else start();
+    }
+
+    document.getElementById('btn-init').addEventListener('click', () => { initAudio(); preStart(); });
+    window.addEventListener('keydown', e => { keys[e.code] = true; if(e.code === 'Escape') backToMenu(); });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+    window.addEventListener('mousemove', e => {
+        if(run && !('ontouchstart' in window)) {
+            // Optional: can use mouse position for P1 if desired
+        }
+    });
+
+    function showSub(id) {
+        document.getElementById('m-main').style.display = 'none';
+        document.getElementById('m-set').style.display = 'none';
+        document.getElementById('m-legend').style.display = 'none';
+        document.getElementById(id).style.display = 'block';
+    }
+
+    // OSTRZEŻENIE PRZED ZMIANĄ USTAWIEŃ (CONFIRM)
+    function saveSettings() {
+        if(confirm("Czy na pewno chcesz zapisać zmiany i wrócić do menu głównego?")) {
+            showSub('m-main');
+        }
+    }
+
+    function handleInput(p, dt) {
+        let dx = 0, dy = 0, fire = p.fire;
+        const gp = navigator.getGamepads()[p.id - 1];
+        if(gp) { dx = gp.axes[0]; dy = gp.axes[1]; if(gp.buttons[0].pressed || gp.buttons[7].pressed) fire = true; }
+        
+        if(p.id === 1) {
+            // Apply Joystick 1 if active
+            if(joyInput.active) { dx = joyInput.x; dy = joyInput.y; }
+            if(keys['ArrowLeft']) dx--; if(keys['ArrowRight']) dx++;
+            if(keys['ArrowUp']) dy--; if(keys['ArrowDown']) dy++;
+            if(keys['Enter'] || keys['Space']) fire = true;
+        } else {
+            // Apply Joystick 2 if active
+            if(joyInput2.active) { dx = joyInput2.x; dy = joyInput2.y; }
+            if(keys['KeyA']) dx--; if(keys['KeyD']) dx++;
+            if(keys['KeyW']) dy--; if(keys['KeyS']) dy++;
+            if(keys['ShiftLeft'] || keys['ControlLeft']) fire = true;
+        }
+        
+        p.x += dx * 8 * dt; p.y += dy * 8 * dt;
+        
+        const b = (mode === "split" ? window.innerWidth/2 : window.innerWidth);
+        p.x = Math.max(30, Math.min(b-30, p.x));
+        p.y = Math.max(30, Math.min(window.innerHeight-90, p.y));
+        if(fire && p.hp > 0) shoot(p);
+        if(p.pwr > 0) p.pwr--;
+    }
+
+    function shoot(p) {
+        if(Date.now() - p.ls < (p.pwr > 0 ? 100 : 300)) return;
+        p.ls = Date.now(); playShootSound(sfxStyle); 
+        p.w.pr.push({ x: p.x, y: p.y - 30, vy: -15, act: true, pwr: p.pwr > 0 });
+    }
+
+    function updateWorld(p, ctx, can, oth = null) {
+        const w = p.w; w.time++;
+        w.pr.forEach(r => {
+            r.y += r.vy; ctx.fillStyle = r.pwr ? "#0ff" : p.col; ctx.fillRect(r.x-3, r.y, 6, 20);
+            w.en.forEach(e => { if(Math.hypot(r.x-e.x, r.y-e.y) < 30) { e.hp--; r.act=false; if(e.hp<=0){ e.act=false; p.sc+=100; }}});
+        });
+        w.en.forEach(e => {
+            e.y += e.spd; drawObj(ctx, e.t, e.x, e.y, e.size, w.time, (e.t==='stalker'?'#f04':'#ff0'));
+            const hit = (pl) => { 
+                if(Math.hypot(pl.x-e.x, pl.y-e.y) < 40) {
+                    if(e.t==='bluefire') { pl.pwr = 400; e.act=false; }
+                    else if(e.t==='heart') { pl.hp = Math.min(5, pl.hp + 1); e.act=false; }
+                    else if(pl.hp > 0 && pl.pwr <= 0) { pl.hp--; e.act=false; }
+                }
+            };
+            hit(p); if(oth) hit(oth);
+        });
+        w.pr = w.pr.filter(r => r.act && r.y > -50); w.en = w.en.filter(e => e.act && e.y < can.height + 50);
+        drawObj(ctx, 'spider', p.x, p.y, 35, w.time, p.col, p.pwr > 0, p);
+        if(oth) drawObj(ctx, 'spider', oth.x, oth.y, 35, w.time, oth.col, oth.pwr > 0, oth);
+    }
+
+    function loop(t) {
+        if(!run) return; const dt = (t - lastT) / 16.6 || 1; lastT = t;
+        const c1 = document.getElementById('c1'), ctx1 = c1.getContext('2d');
+        ctx1.clearRect(0,0,c1.width,c1.height);
+        handleInput(p1, dt); if(mode !== "1") handleInput(p2, dt);
+        if(mode === "split") {
+            const c2 = document.getElementById('c2'), ctx2 = c2.getContext('2d'); ctx2.clearRect(0,0,c2.width,c2.height);
+            updateWorld(p1, ctx1, c1); updateWorld(p2, ctx2, c2);
+        } else updateWorld(p1, ctx1, c1, (mode==="shared"?p2:null));
+        document.getElementById('st1').innerText = (p1.hp > 0 ? `P1: ${"❤️".repeat(p1.hp)} | ${p1.sc}` : `P1: ZOMBI 👻 | ${p1.sc}`);
+        if(mode !== "1") document.getElementById('st2').innerText = (p2.hp > 0 ? `P2: ${"❤️".repeat(p2.hp)} | ${p2.sc}` : `P2: ZOMBI 👻 | ${p2.sc}`);
+        if(p1.hp <= 0 && ((mode === "1") || (p2 && p2.hp <= 0))) { alert("GAME OVER"); backToMenu(); }
+        else requestAnimationFrame(loop);
+    }
+</script>
+</body>
+</html>
